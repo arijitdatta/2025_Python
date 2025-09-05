@@ -11,9 +11,11 @@ my_dict = {
 }
 
 #Accessing data from the dictionary
+print("Accessing data from the dictionary:")
 print(my_dict["name"])
 print(my_dict["age"])
 print(my_dict["city"])
+print(my_dict.get("name"))  # Another way to access value by key
 
 #Change data in the dictionary
 my_dict["age"] = 31
