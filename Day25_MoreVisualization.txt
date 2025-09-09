@@ -1,0 +1,13 @@
+On Day 25, there is really no code. We will explore other visualization tools
+Seaborn : for heatmaps
+Plotly: for interactive visualization
+
+For non-python users, there are some great visualizations
+Tableau
+Powerbi
+Datawrapper.De
+Google Looker Studio
+
+To get colour ideas for visualizations:
+colourbrewer
+    

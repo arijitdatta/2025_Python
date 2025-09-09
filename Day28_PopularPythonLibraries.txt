@@ -1,0 +1,28 @@
+General Datascience:
+Pandas, NumPy, Mapplotlib
+
+For machine learning: 
+sklearn
+
+For computer visualization
+pytorch
+tensorflow
+
+For Web developer
+Flask
+Streamlit (for web dashboard)
+Django - FSE
+
+Webscraping & WebCrawling
+BeautifulSoup
+Scrapy
+Selenium
+
+Image Processing
+OpenCV
+Ultralatycs
+
+API
+Flask
+REquests
+FastAPI
