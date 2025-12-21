@@ -5,7 +5,7 @@ class ReportGenerator:
     """Generates formatted reports for bank statement analysis."""
     
     @staticmethod
-    def generate_report(bank_statement, monthly_spending, unprocessed_rows):
+    def generate_report(bank_statement, monthly_spending, unprocessed_rows, row_stats=None):
         """
         Generate and print complete analysis report.
         
@@ -13,9 +13,10 @@ class ReportGenerator:
             bank_statement: Processed DataFrame
             monthly_spending: Dictionary of monthly spending by category
             unprocessed_rows: List of unprocessed transaction rows
+            row_stats: Dictionary containing debit/credit statistics
         """
         ReportGenerator._print_header()
-        ReportGenerator._print_statistics(bank_statement, unprocessed_rows)
+        ReportGenerator._print_statistics(bank_statement, unprocessed_rows, row_stats)
         ReportGenerator._print_monthly_summary(monthly_spending)
         ReportGenerator._print_unprocessed_rows(unprocessed_rows)
         ReportGenerator._print_footer()
@@ -28,7 +29,7 @@ class ReportGenerator:
         print("="*60)
     
     @staticmethod
-    def _print_statistics(bank_statement, unprocessed_rows):
+    def _print_statistics(bank_statement, unprocessed_rows, row_stats=None):
         """Print overall statistics."""
         total_rows = len(bank_statement)
         total_unprocessed = len(unprocessed_rows)
@@ -38,6 +39,14 @@ class ReportGenerator:
         print("-"*60)
         print(f"Total Rows:          {total_rows:>5}")
         print(f"Processed Rows:      {total_processed:>5}")
+        
+        # Add debit/credit breakdown if available
+        if row_stats:
+            total_debit = row_stats.get('total_debit_rows', 0)
+            total_credit = row_stats.get('total_credit_rows', 0)
+            print(f"  ├─ Debit Rows (spending):   {total_debit:>5}")
+            print(f"  └─ Credit Rows (income):    {total_credit:>5}")
+        
         print(f"Unprocessed Rows:    {total_unprocessed:>5}")
         print("-"*60)
     

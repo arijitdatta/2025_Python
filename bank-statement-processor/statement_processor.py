@@ -23,19 +23,25 @@ class StatementProcessor:
             bank_statement: Prepared DataFrame with month column
             
         Returns:
-            Tuple of (monthly_spending, unprocessed_rows)
+            Tuple of (monthly_spending, unprocessed_rows, row_stats)
         """
         monthly_groups = bank_statement.groupby('month')
         monthly_spending = {}
         unprocessed_rows = []
+        row_stats = {
+            'total_debit_rows': 0,
+            'total_credit_rows': 0,
+            'monthly_debit': {},
+            'monthly_credit': {}
+        }
         
         for month, group in monthly_groups:
-            spending_summary = self._process_month(month, group, unprocessed_rows)
+            spending_summary = self._process_month(month, group, unprocessed_rows, row_stats)
             monthly_spending[str(month)] = spending_summary
         
-        return monthly_spending, unprocessed_rows
+        return monthly_spending, unprocessed_rows, row_stats
     
-    def _process_month(self, month, group, unprocessed_rows):
+    def _process_month(self, month, group, unprocessed_rows, row_stats):
         """
         Process transactions for a single month.
         
@@ -43,14 +49,27 @@ class StatementProcessor:
             month: Month period
             group: DataFrame rows for this month
             unprocessed_rows: List to track unprocessed rows
+            row_stats: Dictionary to track debit/credit statistics
             
         Returns:
             Spending summary dictionary for the month
         """
         spending_summary = {category['name']: 0 for category in self.categories}
+        month_str = str(month)
+        month_debit_count = 0
+        month_credit_count = 0
         
         for index, row in group.iterrows():
-            self._process_transaction(index, row, spending_summary, month, unprocessed_rows)
+            is_debit = self._process_transaction(index, row, spending_summary, month, unprocessed_rows)
+            if is_debit == 'debit':
+                month_debit_count += 1
+            elif is_debit == 'credit':
+                month_credit_count += 1
+        
+        row_stats['monthly_debit'][month_str] = month_debit_count
+        row_stats['monthly_credit'][month_str] = month_credit_count
+        row_stats['total_debit_rows'] += month_debit_count
+        row_stats['total_credit_rows'] += month_credit_count
         
         return spending_summary
     
@@ -64,6 +83,9 @@ class StatementProcessor:
             spending_summary: Dictionary to accumulate spending
             month: Month period for tracking
             unprocessed_rows: List to track unprocessed rows
+            
+        Returns:
+            'debit', 'credit', or None based on transaction type processed
         """
         description = str(row.iloc[1]).lower()  # 2nd column
         debit_amount = row.iloc[4]  # 5th column
@@ -76,7 +98,7 @@ class StatementProcessor:
                 'row_num': index + 23,
                 'reason': 'Empty or NaN description'
             })
-            return
+            return None
         
         # Skip if there's no debit but there is credit (income/credit transactions)
         import pandas as pd
@@ -88,7 +110,7 @@ class StatementProcessor:
                 'description': description,
                 'credit': credit_amount
             })
-            return
+            return 'credit'
         
         # Find matching category
         found_category = False
@@ -107,3 +129,6 @@ class StatementProcessor:
                 'description': description,
                 'debit': debit_amount
             })
+            return None
+        
+        return 'debit'

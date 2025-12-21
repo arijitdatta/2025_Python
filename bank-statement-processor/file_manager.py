@@ -54,6 +54,26 @@ class FileManager:
             raise Exception(f"Error reading {filename}: {e}")
     
     @staticmethod
+    def read_bank_statement_from_path(filepath, skiprows=22):
+        """
+        Read bank statement from a specific file path.
+        
+        Args:
+            filepath: Full path to XLS file
+            skiprows: Number of rows to skip
+            
+        Returns:
+            DataFrame containing bank statement
+        """
+        if not os.path.exists(filepath):
+            raise FileNotFoundError(f"Error: File not found at {filepath}")
+        
+        try:
+            return pd.read_excel(filepath, skiprows=skiprows)
+        except Exception as e:
+            raise Exception(f"Error reading file: {e}")
+    
+    @staticmethod
     def prepare_statement(bank_statement):
         """
         Prepare bank statement for processing.

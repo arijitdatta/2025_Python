@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bank Statement Processor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        .upload-section {
+            background: white;
+            border-radius: 10px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+        }
+
+        .upload-section h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .upload-section p {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .file-input-wrapper {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .file-input-label {
+            flex: 1;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .file-input-custom {
+            display: block;
+            padding: 12px 20px;
+            background: #f5f5f5;
+            border: 2px dashed #667eea;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .file-input-custom:hover {
+            background: #f0f0f0;
+            border-color: #764ba2;
+        }
+
+        .file-input-custom.dragging {
+            background: #e8e8ff;
+            border-color: #667eea;
+        }
+
+        .file-name {
+            display: none;
+            margin-top: 10px;
+            padding: 10px;
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            color: #2e7d32;
+            border-radius: 4px;
+        }
+
+        button[type="submit"] {
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button[type="submit"]:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button[type="submit"]:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .error-message {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            border-left: 4px solid #c62828;
+            display: none;
+        }
+
+        .report-section {
+            background: white;
+            border-radius: 10px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            display: none;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .report-section.show {
+            display: block;
+        }
+
+        .report-section .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 20px;
+        }
+
+        .report-section .header h1 {
+            color: #333;
+            font-size: 28px;
+        }
+
+        .report-section .section {
+            margin-bottom: 30px;
+        }
+
+        .report-section h2 {
+            color: #667eea;
+            font-size: 22px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 10px;
+        }
+
+        .stats-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        .stats-table tr {
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .stats-table td {
+            padding: 12px;
+            text-align: left;
+        }
+
+        .stats-table td:first-child {
+            font-weight: 600;
+            color: #333;
+            width: 50%;
+        }
+
+        .stats-table td:last-child {
+            color: #667eea;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .month-section {
+            margin-bottom: 25px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 5px;
+        }
+
+        .month-section h3 {
+            color: #764ba2;
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+
+        .sort-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .sort-btn {
+            padding: 8px 15px;
+            background: #f0f0f0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            color: #333;
+            transition: all 0.2s;
+        }
+
+        .sort-btn:hover {
+            background: #e0e0e0;
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .sort-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .spending-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        .spending-table th {
+            background: #f0f0f0;
+            padding: 10px;
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 2px solid #e0e0e0;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .spending-table th.sortable:hover {
+            background: #e0e0e0;
+        }
+
+        .spending-table td {
+            padding: 10px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .spending-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .spending-table td:last-child {
+            text-align: right;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .unprocessed-container {
+            background: #fff3e0;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #ff9800;
+        }
+
+        .month-unprocessed {
+            margin-bottom: 15px;
+        }
+
+        .month-unprocessed h3 {
+            color: #f57c00;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .unprocessed-row {
+            padding: 10px;
+            background: white;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            border-left: 3px solid #ff9800;
+            font-size: 13px;
+            color: #333;
+        }
+
+        .success-message {
+            text-align: center;
+            padding: 30px;
+            background: #e8f5e9;
+            border-radius: 5px;
+            border-left: 4px solid #4caf50;
+        }
+
+        .success-message h2 {
+            color: #2e7d32;
+            margin-bottom: 10px;
+        }
+
+        .success-message p {
+            color: #388e3c;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            color: #666;
+            font-size: 12px;
+        }
+
+        @media (max-width: 768px) {
+
+            .upload-section,
+            .report-section {
+                padding: 20px;
+            }
+
+            .file-input-wrapper {
+                flex-direction: column;
+            }
+
+            .report-section h2 {
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="upload-section">
+            <h1>📊 Bank Statement Processor</h1>
+            <p>Upload your bank statement file to generate a detailed analysis report</p>
+
+            <form id="uploadForm">
+                <div class="file-input-wrapper">
+                    <div class="file-input-label">
+                        <div class="file-input-custom" id="dropZone">
+                            <span id="dropText">📁 Click to select or drag and drop XLS/XLSX file here</span>
+                            <input type="file" id="fileInput" name="file" accept=".xls,.xlsx" />
+                        </div>
+                        <div class="file-name" id="fileName"></div>
+                    </div>
+                    <button type="submit" id="submitBtn">Process</button>
+                </div>
+            </form>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p style="margin-top: 10px; color: #666;">Processing your file...</p>
+            </div>
+
+            <div class="error-message" id="errorMessage"></div>
+        </div>
+
+        <div class="report-section" id="reportSection"></div>
+    </div>
+
+    <script>
+        const form = document.getElementById('uploadForm');
+        const fileInput = document.getElementById('fileInput');
+        const dropZone = document.getElementById('dropZone');
+        const dropText = document.getElementById('dropText');
+        const fileName = document.getElementById('fileName');
+        const loading = document.getElementById('loading');
+        const errorMessage = document.getElementById('errorMessage');
+        const reportSection = document.getElementById('reportSection');
+        const submitBtn = document.getElementById('submitBtn');
+
+        // File input click handler
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        // File selection handler
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                updateFileName(e.target.files[0]);
+            }
+        });
+
+        // Drag and drop handlers
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragging');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragging');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragging');
+
+            if (e.dataTransfer.files.length > 0) {
+                fileInput.files = e.dataTransfer.files;
+                updateFileName(e.dataTransfer.files[0]);
+            }
+        });
+
+        function updateFileName(file) {
+            dropText.textContent = `✓ ${file.name} selected`;
+            fileName.textContent = `Selected: ${file.name}`;
+            fileName.style.display = 'block';
+        }
+
+        // Form submission
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            if (!fileInput.files.length) {
+                showError('Please select a file first');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            try {
+                loading.style.display = 'block';
+                errorMessage.style.display = 'none';
+                submitBtn.disabled = true;
+
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    showError(data.error || 'An error occurred');
+                } else {
+                    displayReport(data.report);
+                }
+            } catch (error) {
+                showError('Network error: ' + error.message);
+            } finally {
+                loading.style.display = 'none';
+                submitBtn.disabled = false;
+            }
+        });
+
+        function showError(message) {
+            errorMessage.textContent = '❌ ' + message;
+            errorMessage.style.display = 'block';
+        }
+
+        function displayReport(html) {
+            reportSection.innerHTML = html;
+            reportSection.classList.add('show');
+
+            // Initialize sorting functionality
+            initializeSorting();
+
+            setTimeout(() => {
+                reportSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+        }
+
+        function initializeSorting() {
+            // Get all sort buttons
+            const sortButtons = document.querySelectorAll('.sort-btn');
+
+            sortButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const month = btn.dataset.month;
+                    const sortType = btn.classList.contains('sort-category-btn') ? 'category' : 'amount';
+                    const table = document.querySelector(`.spending-table[data-month="${month}"]`);
+                    const container = btn.closest('.month-section');
+
+                    // Remove active state from all buttons in this month
+                    container.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+
+                    sortTable(table, sortType);
+                });
+            });
+        }
+
+        function sortTable(table, sortType) {
+            const tbody = table.querySelector('tbody');
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+
+            if (sortType === 'category') {
+                rows.sort((a, b) => {
+                    const catA = a.dataset.category.toLowerCase();
+                    const catB = b.dataset.category.toLowerCase();
+                    return catA.localeCompare(catB);
+                });
+            } else if (sortType === 'amount') {
+                rows.sort((a, b) => {
+                    const amtA = parseFloat(a.dataset.amount);
+                    const amtB = parseFloat(b.dataset.amount);
+                    return amtB - amtA;  // Descending order
+                });
+            }
+
+            // Clear and re-append sorted rows
+            rows.forEach(row => tbody.appendChild(row));
+        }
+    </script>
+</body>
+
+</html>

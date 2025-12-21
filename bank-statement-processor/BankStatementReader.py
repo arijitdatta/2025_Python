@@ -28,10 +28,10 @@ def main():
     
     # Process statement by month
     processor = StatementProcessor(categories, alias_to_category)
-    monthly_spending, unprocessed_rows = processor.process_monthly_statements(bank_statement)
+    monthly_spending, unprocessed_rows, row_stats = processor.process_monthly_statements(bank_statement)
     
     # Generate and display report
-    ReportGenerator.generate_report(bank_statement, monthly_spending, unprocessed_rows)
+    ReportGenerator.generate_report(bank_statement, monthly_spending, unprocessed_rows, row_stats)
 
 
 if __name__ == '__main__':
