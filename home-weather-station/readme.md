@@ -1,0 +1,1 @@
+To activate venv (the local python 3 env) : source .venv/bin/activate

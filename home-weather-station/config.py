@@ -1,0 +1,2 @@
+API_KEY="d2ae1ec64e868af42ccc85119939beeb"
+CITY="Dum Dum, IN"
