@@ -14,7 +14,7 @@ def decide(indoor, outdoor, doors_open):
 
     mode = decide_mode(indoor, outdoor)
 
-    # If doors are closed, we cannot ventilate effectively
+    # 🚨 Door constraint
     if not doors_open:
         return {
             "mode": "ISOLATE",
@@ -30,9 +30,10 @@ def decide(indoor, outdoor, doors_open):
             "close": [w.id for w in WINDOWS]
         }
 
-    inlet, exhaust, closed = assign_roles(WINDOWS, side_map)
+    # ✅ pass wind direction to window engine
+    inlet, exhaust, closed = assign_roles(WINDOWS, side_map, outdoor["wind_dir"])
 
-    # ✅ Remove duplicates safely
+    # ✅ remove duplicates
     unique_windows = {w.id: w for w in (inlet + exhaust)}
 
     return {
