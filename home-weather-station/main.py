@@ -3,12 +3,13 @@ from indoorSensorReader import read_sensor_data
 import time
 from decision_engine import decide
 
-
 print("Starting Home Weather Decision System...")
 
 last_weather_fetch = 0
 weather_cache = None
 WEATHER_REFRESH_INTERVAL = 3600  # seconds (1 hour)
+
+doors_open = True   # change to False to test closed-door scenario
 
 while True:
     try:
@@ -35,7 +36,8 @@ while True:
         print("Indoor:", indoor)
         print("Outdoor:", outdoor)
 
-        action = decide(indoor, outdoor)
+      
+        action = decide(indoor, outdoor, doors_open)
 
         print("--- SYSTEM DECISION ---")
         print(action)

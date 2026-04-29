@@ -1,10 +1,10 @@
 from evaluator import classify_side, apply_wind_override
 from modes import decide_mode
 from window_engine import assign_roles
-from data.window_layout import WINDOWS
+from data.windows_layout import WINDOWS
 
 
-def decide(indoor, outdoor):
+def decide(indoor, outdoor, doors_open):
     side_map = {}
 
     for side in ["NORTH", "SOUTH", "EAST", "WEST"]:
@@ -14,13 +14,29 @@ def decide(indoor, outdoor):
 
     mode = decide_mode(indoor, outdoor)
 
+    # If doors are closed, we cannot ventilate effectively
+    if not doors_open:
+        return {
+            "mode": "ISOLATE",
+            "open": [],
+            "close": [w.id for w in WINDOWS],
+            "reason": "Doors closed - no airflow path"
+        }
+
     if mode == "ISOLATE":
-        return {"open": [], "close": [w.id for w in WINDOWS]}
+        return {
+            "mode": "ISOLATE",
+            "open": [],
+            "close": [w.id for w in WINDOWS]
+        }
 
     inlet, exhaust, closed = assign_roles(WINDOWS, side_map)
 
+    # ✅ Remove duplicates safely
+    unique_windows = {w.id: w for w in (inlet + exhaust)}
+
     return {
-        "open": [w.id for w in inlet + exhaust],
-        "close": [w.id for w in closed],
-        "mode": mode
+        "mode": mode,
+        "open": list(unique_windows.keys()),
+        "close": [w.id for w in closed]
     }
